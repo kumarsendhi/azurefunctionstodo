@@ -19,11 +19,28 @@ namespace FunctionApp2
     {
         //private static List<Todo> items = new List<Todo>();
 
+        //[FunctionName("CreateTodo")]
+        //public static async Task<IActionResult> CreateTodo(
+        //    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route ="todo")]HttpRequest req,
+        //    [Table("todos",Connection = "AzureWebJobsStorage")] IAsyncCollector<TodoTableEntity> todoTable,
+        //    TraceWriter log)
+        //{
+        //    log.Info("Creating a new todo list item");
+        //    string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        //    var input = JsonConvert.DeserializeObject<TodoCreateModel>(requestBody);
+
+        //    var todo = new Todo() { TaskDescription = input.TaskDescription };
+        //    //items.Add(todo);
+        //    await todoTable.AddAsync(todo.ToTableEntity());
+        //    return new OkObjectResult(todo);
+        //}
+
         [FunctionName("CreateTodo")]
         public static async Task<IActionResult> CreateTodo(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route ="todo")]HttpRequest req,
-            [Table("todos",Connection = "AzureWebJobsStorage")] IAsyncCollector<TodoTableEntity> todoTable,
-            TraceWriter log)
+      [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "todo")]HttpRequest req,
+      [Queue("todos", Connection = "AzureWebJobsStorage")] IAsyncCollector<Todo> todoQueue,
+      [Table("todos", Connection = "AzureWebJobsStorage")] IAsyncCollector<TodoTableEntity> todoTable,
+      TraceWriter log)
         {
             log.Info("Creating a new todo list item");
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -32,6 +49,7 @@ namespace FunctionApp2
             var todo = new Todo() { TaskDescription = input.TaskDescription };
             //items.Add(todo);
             await todoTable.AddAsync(todo.ToTableEntity());
+            await todoQueue.AddAsync(todo);
             return new OkObjectResult(todo);
         }
 
